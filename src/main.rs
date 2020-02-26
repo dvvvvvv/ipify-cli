@@ -3,7 +3,8 @@ use hyper::client::{Client, HttpConnector};
 use hyper::http::Uri;
 use hyper_tls::HttpsConnector;
 use std::convert::From;
-use std::str::FromStr;
+
+type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 enum Error {
@@ -35,12 +36,10 @@ impl std::fmt::Display for Error {
 #[tokio::main]
 async fn main() {
     let client = client();
-    let call = client.get(Uri::from_str("https://api.ipify.org").unwrap());
-    let response = call.await.unwrap();
-    let body = response.into_body();
-    let bytes = body::to_bytes(body).await.unwrap();
-    let ip = String::from_utf8_lossy(&bytes);
-    println!("{}", ip);
+    match ip(client, IpVersion::V4).await {
+        Ok(ip) => println!("{}", ip),
+        Err(err) => eprintln!("{}", err),
+    }
 }
 
 enum IpVersion {
@@ -48,8 +47,27 @@ enum IpVersion {
     V6,
 }
 
-//async fn ip(client: Client<_,Body>, ip_version: IpVersion) -> String {
-//}
+async fn ip<T>(client: Client<T, Body>, ip_version: IpVersion) -> Result<String>
+where
+    T: hyper::client::connect::Connect,
+    T: std::clone::Clone,
+    T: std::marker::Send,
+    T: std::marker::Sync,
+    T: 'static,
+{
+    let call = client.get(uri(ip_version)).await.unwrap();
+    let body = call.into_body();
+    let bytes = body::to_bytes(body).await.unwrap();
+    let asdf = String::from_utf8_lossy(&bytes).to_string();
+    Ok(asdf)
+}
+
+fn uri(ip_version: IpVersion) -> Uri {
+    match ip_version {
+        IpVersion::V4 => "https://api.ipify.org".parse().unwrap(),
+        IpVersion::V6 => "https://api6.ipify.org".parse().unwrap(),
+    }
+}
 
 fn client() -> Client<HttpsConnector<HttpConnector>, Body> {
     Client::builder().build::<_, Body>(hyper_tls::HttpsConnector::new())
