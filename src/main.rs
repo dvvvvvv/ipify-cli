@@ -55,11 +55,8 @@ where
     T: std::marker::Sync,
     T: 'static,
 {
-    let call = client.get(uri(ip_version)).await.unwrap();
-    let body = call.into_body();
-    let bytes = body::to_bytes(body).await.unwrap();
-    let asdf = String::from_utf8_lossy(&bytes).to_string();
-    Ok(asdf)
+    let body = body::to_bytes(client.get(uri(ip_version)).await?.into_body()).await?;
+    Ok(String::from_utf8_lossy(&body).to_string())
 }
 
 fn uri(ip_version: IpVersion) -> Uri {
@@ -71,4 +68,19 @@ fn uri(ip_version: IpVersion) -> Uri {
 
 fn client() -> Client<HttpsConnector<HttpConnector>, Body> {
     Client::builder().build::<_, Body>(hyper_tls::HttpsConnector::new())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn ip_v4_api_uri() {
+        let uri = uri(IpVersion::V4);
+        assert_eq!("https://api.ipify.org".parse::<Uri>().unwrap(), uri)
+    }
+
+    fn ip_v6_api_uri() {
+        let uri = uri(IpVersion::V6);
+        assert_eq!("https://api6.ipify.org".parse::<Uri>().unwrap(), uri)
+    }
 }
