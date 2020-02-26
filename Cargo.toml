@@ -10,6 +10,5 @@ edition = "2018"
 clap = "2.33"
 hyper = "0.13.2"
 hyper-tls = "0.4.1"
-futures = "0.3.4"
 tokio = { version = "0.2.11", features = [ "macros" ] }
 
