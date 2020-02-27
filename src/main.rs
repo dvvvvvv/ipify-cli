@@ -74,11 +74,13 @@ fn client() -> Client<HttpsConnector<HttpConnector>, Body> {
 mod test {
     use super::*;
 
+    #[test]
     fn ip_v4_api_uri() {
         let uri = uri(IpVersion::V4);
         assert_eq!("https://api.ipify.org".parse::<Uri>().unwrap(), uri)
     }
 
+    #[test]
     fn ip_v6_api_uri() {
         let uri = uri(IpVersion::V6);
         assert_eq!("https://api6.ipify.org".parse::<Uri>().unwrap(), uri)
