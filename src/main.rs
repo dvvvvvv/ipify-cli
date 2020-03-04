@@ -47,8 +47,8 @@ async fn main() {
         Ok(version) => version,
         Err(err) => exit_with_error(err),
     };
-    let client = client();
-    match ip(client, ip_version).await {
+    let client = IpifyClient::default();
+    match client.ip(ip_version).await {
         Ok(ip) => println!("{}", ip),
         Err(err) => exit_with_error(err),
     }
@@ -88,7 +88,17 @@ impl FromStr for IpVersion {
     }
 }
 
-async fn ip<T>(client: Client<T, Body>, ip_version: IpVersion) -> Result<String>
+struct IpifyClient<T> {
+    http_client: Client<T, Body>,
+}
+
+impl Default for IpifyClient<HttpsConnector<HttpConnector>> {
+    fn default() -> IpifyClient<HttpsConnector<HttpConnector>> {
+        Self::with_connector(hyper_tls::HttpsConnector::new())
+    }
+}
+
+impl<T> IpifyClient<T>
 where
     T: hyper::client::connect::Connect,
     T: std::clone::Clone,
@@ -96,8 +106,18 @@ where
     T: std::marker::Sync,
     T: 'static,
 {
-    let body = body::to_bytes(client.get(uri(ip_version)).await?.into_body()).await?;
-    Ok(String::from_utf8_lossy(&body).to_string())
+    pub fn with_connector(connector: T) -> Self {
+        Self::with_http_client(Client::builder().build::<_, Body>(connector))
+    }
+
+    pub fn with_http_client(http_client: Client<T, Body>) -> Self {
+        IpifyClient { http_client }
+    }
+
+    pub async fn ip(&self, ip_version: IpVersion) -> Result<String> {
+        let body = body::to_bytes(self.http_client.get(uri(ip_version)).await?.into_body()).await?;
+        Ok(String::from_utf8_lossy(&body).to_string())
+    }
 }
 
 fn uri(ip_version: IpVersion) -> Uri {
@@ -105,10 +125,6 @@ fn uri(ip_version: IpVersion) -> Uri {
         IpVersion::V4 => "https://api.ipify.org".parse().unwrap(),
         IpVersion::V6 => "https://api6.ipify.org".parse().unwrap(),
     }
-}
-
-fn client() -> Client<HttpsConnector<HttpConnector>, Body> {
-    Client::builder().build::<_, Body>(hyper_tls::HttpsConnector::new())
 }
 
 #[cfg(test)]
