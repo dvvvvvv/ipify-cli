@@ -1,8 +1,9 @@
-use super::Result;
+use super::{Error, Result};
 use hyper::body::{self, Body};
 use hyper::client::{Client, HttpConnector};
 use hyper::http::Uri;
 use hyper_tls::HttpsConnector;
+use std::str::FromStr;
 
 pub struct IpifyClient<T> {
     http_client: Client<T, Body>,
@@ -46,4 +47,32 @@ fn uri(ip_version: IpVersion) -> Uri {
 pub enum IpVersion {
     V4,
     V6,
+}
+
+impl FromStr for IpVersion {
+    type Err = Error;
+    fn from_str(input: &str) -> Result<Self> {
+        match input {
+            "4" => Ok(IpVersion::V4),
+            "6" => Ok(IpVersion::V6),
+            _ => Err(Error::UnsupportedIpVersion(input.to_owned())),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn ip_v4_api_uri() {
+        let uri = uri(IpVersion::V4);
+        assert_eq!("https://api.ipify.org".parse::<Uri>().unwrap(), uri)
+    }
+
+    #[test]
+    fn ip_v6_api_uri() {
+        let uri = uri(IpVersion::V6);
+        assert_eq!("https://api6.ipify.org".parse::<Uri>().unwrap(), uri)
+    }
 }

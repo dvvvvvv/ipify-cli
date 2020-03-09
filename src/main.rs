@@ -1,5 +1,4 @@
 use clap::{App, Arg};
-use std::str::FromStr;
 
 use client::{IpVersion, IpifyClient};
 pub use error::{Error, Result};
@@ -37,32 +36,4 @@ fn app() -> App<'static, 'static> {
             .default_value("4")
             .possible_values(&["4", "6"]),
     )
-}
-
-impl FromStr for IpVersion {
-    type Err = Error;
-    fn from_str(input: &str) -> Result<Self> {
-        match input {
-            "4" => Ok(IpVersion::V4),
-            "6" => Ok(IpVersion::V6),
-            _ => Err(Error::UnsupportedIpVersion(input.to_owned())),
-        }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn ip_v4_api_uri() {
-        let uri = uri(IpVersion::V4);
-        assert_eq!("https://api.ipify.org".parse::<Uri>().unwrap(), uri)
-    }
-
-    #[test]
-    fn ip_v6_api_uri() {
-        let uri = uri(IpVersion::V6);
-        assert_eq!("https://api6.ipify.org".parse::<Uri>().unwrap(), uri)
-    }
 }
