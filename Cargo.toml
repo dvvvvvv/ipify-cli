@@ -14,7 +14,7 @@ categories = ["command-line-utilities", "network-programming"]
 
 [dependencies]
 clap = "2.33"
-hyper = "0.13.2"
+hyper = "0.13.5"
 hyper-tls = "0.4.1"
 tokio = { version = "0.2.11", features = [ "macros" ] }
 
