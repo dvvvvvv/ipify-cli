@@ -1,13 +1,18 @@
 # ipify-cli
 ipify-cli is a CLI command to know the public IP of the machine by using ipify API.
 # Installation
+## From crates.io
+### Prerequisites
+  - [cargo](https://www.rust-lang.org/tools/install)
+### Installation Procedure
+```
+cargo install ipify-cli
+```
 ## From Source Code
 ### Prerequisites
-[git](https://git-scm.com/downloads)
-,
-[cargo](https://www.rust-lang.org/tools/install)
-,
-sudo
+  - [git](https://git-scm.com/downloads)
+  - [cargo](https://www.rust-lang.org/tools/install)
+  - sudo
 
 ### Installation Procedure
 ```
